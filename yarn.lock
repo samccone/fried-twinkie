@@ -315,9 +315,9 @@ tsickle@^0.23.4:
     source-map "^0.5.6"
     source-map-support "^0.4.2"
 
-twinkie@0.0.10:
-  version "0.0.10"
-  resolved "https://registry.yarnpkg.com/twinkie/-/twinkie-0.0.10.tgz#d9fcf3bd7122ffed8cd4d0c5d23b3b8ee38b35c8"
+twinkie@0.0.11:
+  version "0.0.11"
+  resolved "https://registry.yarnpkg.com/twinkie/-/twinkie-0.0.11.tgz#013c5e4b6b23ac8dec5d4eb8f9f84858bc143a74"
   dependencies:
     cheerio "^1.0.0-rc.2"
 
