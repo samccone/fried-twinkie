@@ -84,7 +84,6 @@ var /** !templateInterface.TemplateInterface */ t = view;
         console.log("GENERATED INTERFACE");
         console.log(closureInterface);
       }
-
       for (const errorMsg of joinedErrors) {
         console.log(errorMsg.description);
       }
