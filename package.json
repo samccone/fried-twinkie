@@ -1,0 +1,33 @@
+{
+  "dependencies": {
+    "google-closure-compiler-js": "^20170626.0.0",
+    "tmp": "^0.0.31",
+    "tsickle": "^0.23.4",
+    "twinkie": "0.0.9"
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "ts-node": "^3.2.0",
+    "typescript": "^2.4.1"
+  },
+  "name": "fried-twinkie",
+  "description": "",
+  "version": "0.0.1",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/samccone/fried-twinkie.git"
+  },
+  "keywords": ["polymer", "template"],
+  "author": "Sam Saccone",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/samccone/fried-twinkie/issues"
+  },
+  "homepage": "https://github.com/samccone/fried-twinkie"
+}
