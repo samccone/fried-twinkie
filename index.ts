@@ -9,7 +9,7 @@ export function checkTemplate(
   htmlSrcPath: string,
   jsSrcPath: string,
   jsModule: string,
-  externs: string = ""
+  additionalSources: { src: string; path?: string }[] = []
 ) {
   const generatedInterface = generateInterface(htmlSrcPath);
 
@@ -51,8 +51,7 @@ export function checkTemplate(
       const flags = {
         polymerVersion: 1,
         warningLevel: "VERBOSE",
-        jsCode: [
-          { src: externs, path: "customExterns.js" },
+        jsCode: additionalSources.concat([
           { src: polymerExterns, path: "polymer-1.0.js" },
           { src: closureInterface, path: "generated-html-interface.js" },
           {
@@ -72,7 +71,7 @@ const view = new View();
 var /** !templateInterface.TemplateInterface */ t = view;
             `
           }
-        ]
+        ])
       };
 
       const compiledResults = compile(flags);
