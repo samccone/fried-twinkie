@@ -5,6 +5,30 @@ const tmp = require("tmp");
 const toClosureJS = require("tsickle/built/src/main").toClosureJS;
 const MODULE_EXTRACTOR = /^goog\.module\(\'(.*)\'\)/;
 
+function tmpFileToOriginalFile(
+  originalFile: string,
+  tmpFile: string,
+  errorMessage: string
+) {
+  // Converts the tmp file to the closure name.
+  // /tmp/tmp-7879f1gAjlmWO7Cf.ts
+  // module$contents$_tmp$tmp_119185rPdGriCsIMF_TemplateInterface
+  const formattedTmpFile =
+    "module$contents$_" +
+    tmpFile
+      .slice(1)
+      .replace(/\-/g, "_")
+      .replace(/\//g, "$") // remove the extension
+      .slice(0, -3) +
+    "_TemplateInterface";
+
+  while (errorMessage.indexOf(formattedTmpFile) !== -1) {
+    errorMessage = errorMessage.replace(formattedTmpFile, originalFile);
+  }
+
+  return errorMessage;
+}
+
 export function checkTemplate(
   htmlSrcPath: string,
   jsSrcPath: string,
@@ -62,7 +86,7 @@ export function checkTemplate(
             path: "interface-test.js",
             src: `
 goog.module('template.check');
-const templateInterface = goog.require('${interfaceModule}')
+const templateInterface = goog.require('${interfaceModule}') // ${htmlSrcPath}
 const View = goog.require('${jsModule}');
 
 /** @type {!View} */
@@ -80,11 +104,15 @@ var /** !templateInterface.TemplateInterface */ t = view;
       );
 
       if (joinedErrors.length) {
-        console.log("GENERATED INTERFACE");
+        console.log(`GENERATED INTERFACE from ${htmlSrcPath}`);
+        console.log("-------------");
         console.log(closureInterface);
-      }
-      for (const errorMsg of joinedErrors) {
-        console.log(errorMsg.description);
+        console.log(`--- Errors --`);
+        for (const errorMsg of joinedErrors) {
+          console.log(
+            tmpFileToOriginalFile(htmlSrcPath, path, errorMsg.description)
+          );
+        }
       }
       cleanup();
 
