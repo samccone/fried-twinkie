@@ -1,9 +1,58 @@
 import { generateInterface } from "twinkie/index";
 import { writeSync, readFileSync } from "fs";
+import * as chalk from "chalk";
+
 const compile = require("google-closure-compiler-js").compile;
 const tmp = require("tmp");
 const toClosureJS = require("tsickle/built/src/main").toClosureJS;
 const MODULE_EXTRACTOR = /^goog\.module\(\'(.*)\'\)/;
+
+function printError(
+  sourceFileContents: string,
+  htmlSrcPath: string,
+  generatedHtmlInterfacePath: string,
+  errorMessage: {
+    file: string;
+    description: string;
+    type: string;
+    lineNo: number;
+    charNo: number;
+  }
+) {
+  console.log(
+    chalk.white.bold(
+      tmpFileToOriginalFile(
+        htmlSrcPath,
+        generatedHtmlInterfacePath,
+        errorMessage.description
+      )
+    )
+  );
+
+  if (errorMessage.file === "view-source.js") {
+    const lineIndicator = `${errorMessage.lineNo}: `;
+
+    const originalLine = sourceFileContents.split("\n")[
+      errorMessage.lineNo - 1
+    ];
+
+    const trimmedLine = originalLine.trim();
+
+    console.log(`${lineIndicator}${trimmedLine}`);
+    console.log(
+      chalk.gray(
+        new Array(
+          errorMessage.charNo -
+            1 +
+            lineIndicator.length -
+            (originalLine.length - trimmedLine.length)
+        )
+          .fill("-")
+          .join("")
+      ) + ` ${chalk.red("^")}`
+    );
+  }
+}
 
 function tmpFileToOriginalFile(
   originalFile: string,
@@ -72,6 +121,8 @@ export function checkTemplate(
         "utf-8"
       );
 
+      const viewSource = readFileSync(jsSrcPath, "utf-8");
+
       const flags = {
         polymerVersion: 1,
         warningLevel: "VERBOSE",
@@ -80,7 +131,7 @@ export function checkTemplate(
           { src: closureInterface, path: "generated-html-interface.js" },
           {
             path: "view-source.js",
-            src: readFileSync(jsSrcPath, "utf-8")
+            src: viewSource
           },
           {
             path: "interface-test.js",
@@ -107,11 +158,10 @@ var /** !templateInterface.TemplateInterface */ t = view;
         console.log(`GENERATED INTERFACE from ${htmlSrcPath}`);
         console.log("-------------");
         console.log(closureInterface);
-        console.log(`--- Errors --`);
+        console.log(chalk.bgRed.bold.white(`--- Errors --`));
         for (const errorMsg of joinedErrors) {
-          console.log(
-            tmpFileToOriginalFile(htmlSrcPath, path, errorMsg.description)
-          );
+          printError(viewSource, htmlSrcPath, path, errorMsg);
+          console.log("");
         }
       }
       cleanup();
