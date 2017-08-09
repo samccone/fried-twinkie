@@ -1,6 +1,6 @@
-import { generateInterface } from "twinkie/index";
-import { writeSync, readFileSync } from "fs";
 import * as chalk from "chalk";
+import { readFileSync, writeSync } from "fs";
+import { generateInterface } from "twinkie/index";
 
 const compile = require("google-closure-compiler-js").compile;
 const tmp = require("tmp");
@@ -11,6 +11,7 @@ function printError(
   sourceFileContents: string,
   htmlSrcPath: string,
   generatedHtmlInterfacePath: string,
+  additionalSources: { src: string; path?: string }[] | undefined,
   errorMessage: {
     file: string;
     description: string;
@@ -29,29 +30,41 @@ function printError(
     )
   );
 
+  let source: string[] = [];
+
   if (errorMessage.file === "view-source.js") {
-    const lineIndicator = `${errorMessage.lineNo}: `;
+    source = sourceFileContents.split("\n");
+  } else {
+    const matchingAdditonalSource = (additionalSources || [])
+      .find(v => v.path === errorMessage.file);
 
-    const originalLine = sourceFileContents.split("\n")[
-      errorMessage.lineNo - 1
-    ];
-
-    const trimmedLine = originalLine.trim();
-
-    console.log(`${lineIndicator}${trimmedLine}`);
-    console.log(
-      chalk.gray(
-        new Array(
-          errorMessage.charNo -
-            1 +
-            lineIndicator.length -
-            (originalLine.length - trimmedLine.length)
-        )
-          .fill("-")
-          .join("")
-      ) + ` ${chalk.red("^")}`
-    );
+    if (matchingAdditonalSource) {
+      source = matchingAdditonalSource.src.split("\n");
+    }
   }
+
+  if (source.length === 0) {
+    return;
+  }
+
+  const lineIndicator = `${errorMessage.lineNo}: `;
+
+  const originalLine = source[errorMessage.lineNo - 1];
+  const trimmedLine = originalLine.trim();
+
+  console.log(`${lineIndicator}${trimmedLine}`);
+  console.log(
+    chalk.gray(
+      new Array(
+        errorMessage.charNo -
+          1 +
+          lineIndicator.length -
+          (originalLine.length - trimmedLine.length)
+      )
+        .fill("-")
+        .join("")
+    ) + ` ${chalk.red("^")}`
+  );
 }
 
 function tmpFileToOriginalFile(
@@ -129,10 +142,7 @@ export function checkTemplate(
         jsCode: additionalSources.concat([
           { src: polymerExterns, path: "polymer-1.0.js" },
           { src: closureInterface, path: "generated-html-interface.js" },
-          {
-            path: "view-source.js",
-            src: viewSource
-          },
+          { path: "view-source.js", src: viewSource },
           {
             path: "interface-test.js",
             src: `
@@ -160,7 +170,13 @@ var /** !templateInterface.TemplateInterface */ t = view;
         console.log(closureInterface);
         console.log(chalk.bgRed.bold.white(`--- Errors --`));
         for (const errorMsg of joinedErrors) {
-          printError(viewSource, htmlSrcPath, path, errorMsg);
+          printError(
+            viewSource,
+            htmlSrcPath,
+            path,
+            additionalSources,
+            errorMsg
+          );
           console.log("");
         }
       }
