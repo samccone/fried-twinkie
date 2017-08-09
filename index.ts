@@ -20,6 +20,10 @@ function printError(
     charNo: number;
   }
 ) {
+  if (errorMessage.file) {
+    console.log(`Error from file: ${chalk.bold(errorMessage.file)}`);
+  }
+
   console.log(
     chalk.white.bold(
       tmpFileToOriginalFile(
