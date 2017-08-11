@@ -103,94 +103,96 @@ export function checkTemplate(
 ) {
   const generatedInterface = generateInterface(htmlSrcPath);
 
-  tmp.file(
-    { postfix: ".ts" },
-    (err: Error, path: string, fd: number, cleanup: () => void) => {
-      const diagnostics: any[] = [];
+  return new Promise((resolve, reject) => {
+    tmp.file(
+      { postfix: ".ts" },
+      (err: Error, path: string, fd: number, cleanup: () => void) => {
+        const diagnostics: any[] = [];
 
-      if (err) {
-        throw err;
-      }
-
-      writeSync(fd, generatedInterface);
-      const closure = toClosureJS(
-        { sourceMap: false, experimentalDecorators: true },
-        [path],
-        { isTyped: true },
-        diagnostics as any[]
-      );
-
-      if (closure === null) {
-        diagnostics.forEach(v => console.log(v));
-        throw Error(
-          "Unable to generate JS from typescript interface. Please file a bug."
-        );
-      }
-
-      const closureInterface = closure.jsFiles.get(
-        Array.from(closure.jsFiles.keys())[0]
-      );
-      const interfaceModule = closureInterface.match(MODULE_EXTRACTOR)[1];
-      const polymerExterns = readFileSync(
-        require.resolve(
-          "google-closure-compiler-js/contrib/externs/polymer-1.0.js"
-        ),
-        "utf-8"
-      );
-
-      const viewSource = readFileSync(jsSrcPath, "utf-8");
-
-      const flags = {
-        polymerVersion: 1,
-        warningLevel: "VERBOSE",
-        jsCode: additionalSources.concat([
-          { src: polymerExterns, path: "polymer-1.0.js" },
-          { src: closureInterface, path: "generated-html-interface.js" },
-          { path: "view-source.js", src: viewSource },
-          {
-            path: "interface-test.js",
-            src: `
-goog.module('template.check');
-const templateInterface = goog.require('${interfaceModule}') // ${htmlSrcPath}
-const View = goog.require('${jsModule}');
-
-/** @type {!View} */
-const view = new View();
-
-var /** !templateInterface.TemplateInterface */ t = view;
-            `
-          }
-        ])
-      };
-
-      const compiledResults = compile(flags);
-      const joinedErrors = compiledResults.errors.concat(
-        compiledResults.warnings
-      );
-
-      if (joinedErrors.length) {
-        console.log(`GENERATED INTERFACE from ${htmlSrcPath}`);
-        console.log("-------------");
-        console.log(closureInterface);
-        console.log(chalk.bgRed.bold.white(`--- Errors --`));
-        for (const errorMsg of joinedErrors) {
-          printError(
-            viewSource,
-            htmlSrcPath,
-            path,
-            additionalSources,
-            errorMsg
-          );
-          console.log("");
+        if (err) {
+          throw err;
         }
-      }
-      cleanup();
 
-      if (joinedErrors.length) {
-        return joinedErrors;
-      }
+        writeSync(fd, generatedInterface);
+        const closure = toClosureJS(
+          { sourceMap: false, experimentalDecorators: true },
+          [path],
+          { isTyped: true },
+          diagnostics as any[]
+        );
 
-      return undefined;
-    }
-  );
+        if (closure === null) {
+          diagnostics.forEach(v => console.log(v));
+          throw Error(
+            "Unable to generate JS from typescript interface. Please file a bug."
+          );
+        }
+
+        const closureInterface = closure.jsFiles.get(
+          Array.from(closure.jsFiles.keys())[0]
+        );
+        const interfaceModule = closureInterface.match(MODULE_EXTRACTOR)[1];
+        const polymerExterns = readFileSync(
+          require.resolve(
+            "google-closure-compiler-js/contrib/externs/polymer-1.0.js"
+          ),
+          "utf-8"
+        );
+
+        const viewSource = readFileSync(jsSrcPath, "utf-8");
+
+        const flags = {
+          polymerVersion: 1,
+          warningLevel: "VERBOSE",
+          jsCode: additionalSources.concat([
+            { src: polymerExterns, path: "polymer-1.0.js" },
+            { src: closureInterface, path: "generated-html-interface.js" },
+            { path: "view-source.js", src: viewSource },
+            {
+              path: "interface-test.js",
+              src: `
+  goog.module('template.check');
+  const templateInterface = goog.require('${interfaceModule}') // ${htmlSrcPath}
+  const View = goog.require('${jsModule}');
+
+  /** @type {!View} */
+  const view = new View();
+
+  var /** !templateInterface.TemplateInterface */ t = view;
+              `
+            }
+          ])
+        };
+
+        const compiledResults = compile(flags);
+        const joinedErrors = compiledResults.errors.concat(
+          compiledResults.warnings
+        );
+
+        if (joinedErrors.length) {
+          console.log(`GENERATED INTERFACE from ${htmlSrcPath}`);
+          console.log("-------------");
+          console.log(closureInterface);
+          console.log(chalk.bgRed.bold.white(`--- Errors --`));
+          for (const errorMsg of joinedErrors) {
+            printError(
+              viewSource,
+              htmlSrcPath,
+              path,
+              additionalSources,
+              errorMsg
+            );
+            console.log("");
+          }
+        }
+        cleanup();
+
+        if (joinedErrors.length) {
+          reject(joinedErrors);
+        }
+
+        resolve();
+      }
+    );
+  });
 }
