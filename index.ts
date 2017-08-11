@@ -187,8 +187,10 @@ var /** !templateInterface.TemplateInterface */ t = view;
       cleanup();
 
       if (joinedErrors.length) {
-        process.exit(1);
+        return joinedErrors;
       }
+
+      return undefined;
     }
   );
 }
