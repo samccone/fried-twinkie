@@ -49,7 +49,7 @@ function getFormattedErrorString(
   }
 
   if (source.length === 0) {
-    return;
+    return errorString;
   }
 
   const lineIndicator = `${errorMessage.lineNo}: `;
