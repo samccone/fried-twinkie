@@ -10,4 +10,10 @@ checkTemplate(
       src: "/** @externs */ var page; var Gerrit;"
     }
   ]
-);
+)
+  .then(() => {
+    console.log("test pass!");
+  })
+  .catch(e => {
+    console.log("ERRORS", e);
+  });

@@ -7,7 +7,7 @@ const tmp = require("tmp");
 const toClosureJS = require("tsickle/built/src/main").toClosureJS;
 const MODULE_EXTRACTOR = /^goog\.module\(\'(.*)\'\)/;
 
-function printError(
+function getFormattedErrorString(
   sourceFileContents: string,
   htmlSrcPath: string,
   generatedHtmlInterfacePath: string,
@@ -20,19 +20,20 @@ function printError(
     charNo: number;
   }
 ) {
+  let errorString = "";
+
   if (errorMessage.file) {
-    console.log(`Error from file: ${chalk.bold(errorMessage.file)}`);
+    errorString += `Error from file: ${chalk.bold(errorMessage.file)}\n`;
   }
 
-  console.log(
+  errorString +=
     chalk.white.bold(
       tmpFileToOriginalFile(
         htmlSrcPath,
         generatedHtmlInterfacePath,
         errorMessage.description
       )
-    )
-  );
+    ) + "\n";
 
   let source: string[] = [];
 
@@ -56,8 +57,8 @@ function printError(
   const originalLine = source[errorMessage.lineNo - 1];
   const trimmedLine = originalLine.trim();
 
-  console.log(`${lineIndicator}${trimmedLine}`);
-  console.log(
+  errorString += `${lineIndicator}${trimmedLine}\n`;
+  errorString +=
     chalk.gray(
       new Array(
         errorMessage.charNo -
@@ -67,8 +68,9 @@ function printError(
       )
         .fill("-")
         .join("")
-    ) + ` ${chalk.red("^")}`
-  );
+    ) + ` ${chalk.red("^")}\n`;
+
+  return errorString;
 }
 
 function tmpFileToOriginalFile(
@@ -175,13 +177,15 @@ export function checkTemplate(
           console.log(closureInterface);
           console.log(chalk.bgRed.bold.white(`--- Errors --`));
           for (const errorMsg of joinedErrors) {
-            printError(
+            errorMsg.errorString = getFormattedErrorString(
               viewSource,
               htmlSrcPath,
               path,
               additionalSources,
               errorMsg
             );
+
+            console.log(errorMsg.errorString);
             console.log("");
           }
         }
