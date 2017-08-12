@@ -19,7 +19,7 @@ function getFormattedErrorString(
     lineNo: number;
     charNo: number;
   }
-) {
+): string {
   let errorString = "";
 
   if (errorMessage.file) {
@@ -49,7 +49,7 @@ function getFormattedErrorString(
   }
 
   if (source.length === 0) {
-    return;
+    return errorString;
   }
 
   const lineIndicator = `${errorMessage.lineNo}: `;
