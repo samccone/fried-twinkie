@@ -5,7 +5,8 @@
     "google-closure-compiler-js": "^20170626.0.0",
     "tmp": "^0.0.31",
     "tsickle": "^0.23.4",
-    "twinkie": "0.0.11"
+    "twinkie": "0.0.11",
+    "typescript": "^2.4.1"
   },
   "scripts": {
     "build": "tsc"
@@ -13,7 +14,6 @@
   "devDependencies": {
     "@types/chalk": "^0.4.31",
     "ts-node": "^3.2.0",
-    "typescript": "^2.4.1"
   },
   "name": "fried-twinkie",
   "description": "",
