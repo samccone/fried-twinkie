@@ -98,15 +98,15 @@ function tmpFileToOriginalFile(
   return errorMessage;
 }
 
-export function checkTemplate(
-  htmlSrcPath: string,
-  jsSrcPath: string,
-  jsModule: string,
-  additionalSources: { src: string; path?: string }[] = []
+async function generateClosureInterfaceFromTemplate(
+  generatedInterface: string
 ) {
-  const generatedInterface = generateInterface(htmlSrcPath);
-
-  return new Promise((resolve, reject) => {
+  return new Promise<{
+    cleanup: () => void;
+    closureInterface: string;
+    moduleName: string;
+    path: string;
+  }>((res, rej) => {
     tmp.file(
       { postfix: ".ts" },
       (err: Error, path: string, fd: number, cleanup: () => void) => {
@@ -126,8 +126,11 @@ export function checkTemplate(
 
         if (closure === null) {
           diagnostics.forEach(v => console.log(v));
-          throw Error(
-            "Unable to generate JS from typescript interface. Please file a bug."
+          cleanup();
+          rej(
+            Error(
+              "Unable to generate JS from typescript interface. Please file a bug."
+            )
           );
         }
 
@@ -135,69 +138,117 @@ export function checkTemplate(
           Array.from(closure.jsFiles.keys())[0]
         );
         const interfaceModule = closureInterface.match(MODULE_EXTRACTOR)[1];
-        const polymerExterns = readFileSync(
-          require.resolve(
-            "google-closure-compiler-js/contrib/externs/polymer-1.0.js"
-          ),
-          "utf-8"
-        );
 
-        const viewSource = readFileSync(jsSrcPath, "utf-8");
-
-        const flags = {
-          polymerVersion: 1,
-          warningLevel: "VERBOSE",
-          jsCode: additionalSources.concat([
-            { src: polymerExterns, path: "polymer-1.0.js" },
-            { src: closureInterface, path: "generated-html-interface.js" },
-            { path: "view-source.js", src: viewSource },
-            {
-              path: "interface-test.js",
-              src: `
-  goog.module('template.check');
-  const templateInterface = goog.require('${interfaceModule}') // ${htmlSrcPath}
-  const View = goog.require('${jsModule}');
-
-  /** @type {!View} */
-  const view = new View();
-
-  var /** !templateInterface.TemplateInterface */ t = view;
-              `
-            }
-          ])
-        };
-
-        const compiledResults = compile(flags);
-        const joinedErrors = compiledResults.errors.concat(
-          compiledResults.warnings
-        );
-
-        if (joinedErrors.length) {
-          console.log(`GENERATED INTERFACE from ${htmlSrcPath}`);
-          console.log("-------------");
-          console.log(closureInterface);
-          console.log(chalk.bgRed.bold.white(`--- Errors --`));
-          for (const errorMsg of joinedErrors) {
-            errorMsg.errorString = getFormattedErrorString(
-              viewSource,
-              htmlSrcPath,
-              path,
-              additionalSources,
-              errorMsg
-            );
-
-            console.log(errorMsg.errorString);
-            console.log("");
-          }
-        }
-        cleanup();
-
-        if (joinedErrors.length) {
-          reject(joinedErrors);
-        }
-
-        resolve();
+        res({
+          moduleName: interfaceModule,
+          closureInterface: closureInterface,
+          path,
+          cleanup
+        });
       }
     );
+  });
+}
+
+export async function checkTemplate(
+  toCheck: Array<{
+    htmlSrcPath: string;
+    jsSrcPath: string;
+    jsModule: string;
+    additionalSources?: Array<{
+      src: string;
+      path?: string;
+    }>;
+  }>
+) {
+  const polymerExterns = readFileSync(
+    require.resolve(
+      "google-closure-compiler-js/contrib/externs/polymer-1.0.js"
+    ),
+    "utf-8"
+  );
+
+  const toProcess = await Promise.all(
+    toCheck.map(async v => {
+      const generatedInterface = generateInterface(v.htmlSrcPath);
+      const generatedClosureInterface = await generateClosureInterfaceFromTemplate(
+        generatedInterface
+      );
+
+      const ret = {
+        viewSource: readFileSync(v.jsSrcPath, "utf-8"),
+        generatedInterface,
+        htmlClosureInterface: generatedClosureInterface,
+        ...v
+      };
+
+      return ret;
+    })
+  );
+
+  return await Promise.all(
+    toProcess.map(async v => {
+      const flags = {
+        polymerVersion: 1,
+        warningLevel: "VERBOSE",
+        jsCode: (v.additionalSources || []).concat([
+          { src: polymerExterns, path: "polymer-1.0.js" },
+          {
+            src: v.htmlClosureInterface.closureInterface,
+            path: "generated-html-interface.js"
+          },
+          { path: "view-source.js", src: v.viewSource },
+          {
+            path: "interface-test.js",
+            src: `
+  goog.module('template.check');
+  const templateInterface = goog.require('${
+    v.htmlClosureInterface.moduleName
+  }') // ${v.htmlSrcPath}
+  const View = goog.require('${v.jsModule}');
+  
+  /** @type {!View} */
+  const view = new View();
+  
+  var /** !templateInterface.TemplateInterface */ t = view;
+          `
+          }
+        ])
+      };
+      const compiledResults = compile(flags);
+      v.htmlClosureInterface.cleanup();
+      const joinedErrors = compiledResults.errors.concat(
+        compiledResults.warnings
+      );
+      if (joinedErrors.length) {
+        console.log(`GENERATED INTERFACE from ${v.htmlSrcPath}`);
+        console.log("-------------");
+        console.log(v.htmlClosureInterface.closureInterface);
+        console.log(chalk.bgRed.bold.white(`--- Errors --`));
+        for (const errorMsg of joinedErrors) {
+          errorMsg.errorString = getFormattedErrorString(
+            v.viewSource,
+            v.htmlSrcPath,
+            v.htmlClosureInterface.path,
+            v.additionalSources,
+            errorMsg
+          );
+
+          console.log(errorMsg.errorString);
+          console.log("");
+        }
+      }
+
+      if (joinedErrors.length) {
+        throw new Error(joinedErrors);
+      }
+    })
+  ).catch(e => {
+    // Make sure in an error case we still cleanup.
+    for (const { htmlClosureInterface } of toProcess) {
+      htmlClosureInterface.cleanup();
+    }
+
+    throw e;
   });
 }

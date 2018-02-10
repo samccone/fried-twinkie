@@ -11,17 +11,19 @@ let totalTestsRun = 0;
 let totalTestTime = 0;
 
 test("Single element working", async () => {
-  await checkTemplate(
-    "test/elms/foo-elm.html",
-    "test/elms/foo-elm.js",
-    "foo.foo_elm",
-    [
-      {
-        path: "custom-externs.js",
-        src: "/** @externs */ var page; var Gerrit;"
-      }
-    ]
-  );
+  await checkTemplate([
+    {
+      htmlSrcPath: "test/elms/foo-elm.html",
+      jsSrcPath: "test/elms/foo-elm.js",
+      jsModule: "foo.foo_elm",
+      additionalSources: [
+        {
+          path: "custom-externs.js",
+          src: "/** @externs */ var page; var Gerrit;"
+        }
+      ]
+    }
+  ]);
 });
 
 (async () => {
