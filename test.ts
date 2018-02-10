@@ -15,11 +15,29 @@ test("Single element working", async () => {
     {
       htmlSrcPath: "test/elms/foo-elm.html",
       jsSrcPath: "test/elms/foo-elm.js",
-      jsModule: "foo.foo_elm",
+      jsModule: "foo.foo_elm"
+    }
+  ]);
+});
+
+test("Multiple element working", async () => {
+  await checkTemplate([
+    {
+      htmlSrcPath: "test/elms/foo-elm.html",
+      jsSrcPath: "test/elms/foo-elm.js",
+      jsModule: "foo.foo_elm"
+    },
+    {
+      htmlSrcPath: "test/elms/zap-elm.html",
+      jsSrcPath: "test/elms/zap-elm.js",
+      jsModule: "foo.zap_elm",
       additionalSources: [
         {
           path: "custom-externs.js",
-          src: "/** @externs */ var page; var Gerrit;"
+          src: `
+          /** @externs */
+          var /** @type {string} */ glob;
+        `
         }
       ]
     }
@@ -27,7 +45,10 @@ test("Single element working", async () => {
 });
 
 (async () => {
-  await Promise.all(testsToRun.map(t => testRun(t)));
+  for (const testCase of testsToRun) {
+    await testRun(testCase);
+  }
+
   if (testsFailedCount > 0) {
     console.error(
       `${testsFailedCount} tests failed in ${totalTestTime / 1000} seconds`
@@ -57,11 +78,11 @@ async function testRun({
     process.stdout.write(`Test: ${description}\n`);
     await fn();
     process.stdout.write(
-      `- Test: ${description} - Took ${(Date.now() - startTime) /
+      `- Complete : ${description} - Took ${(Date.now() - startTime) /
         1000} seconds\n`
     );
   } catch (e) {
-    console.error(`- Test ${description} failed ${e}`);
+    console.error(`- Error ${description} failed ${e}`);
     testsFailedCount++;
   }
   totalTestTime += Date.now() - startTime;

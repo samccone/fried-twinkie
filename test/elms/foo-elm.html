@@ -2,7 +2,9 @@
     <template>
         <style include="shared-styles">
         </style>
-        [[bob]]
+        <template is="dom-repeat" items="[[wow]]">
+            [[item.a]]
+        </template>
     </template>
     <script src="foo-elm.js"></script>
 </dom-module>

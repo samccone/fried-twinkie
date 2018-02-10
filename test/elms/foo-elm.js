@@ -3,8 +3,10 @@ exports = Polymer({
   is: "foo-elm",
   properties: {
     /**
-     * @type {string}
+     * @type {Array<!{a: string}>}
      */
-    bob: "ok"
-  }
+    wow: []
+  },
+
+  attached() {}
 });
