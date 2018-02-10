@@ -81,29 +81,29 @@ function getFormattedErrorString(
   return errorString;
 }
 
-function tmpFileToOriginalFile(
-  originalFile: string,
-  tmpFile: string,
-  errorMessage: string
-) {
-  // Converts the tmp file to the closure name.
-  // /tmp/tmp-7879f1gAjlmWO7Cf.ts
-  // module$contents$_tmp$tmp_119185rPdGriCsIMF_TemplateInterface
-  const formattedTmpFile =
-    "module$contents$_" +
-    tmpFile
-      .slice(1)
-      .replace(/\-/g, "_")
-      .replace(/\//g, "$") // remove the extension
-      .slice(0, -3) +
-    "_TemplateInterface";
+// function tmpFileToOriginalFile(
+//   originalFile: string,
+//   tmpFile: string,
+//   errorMessage: string
+// ) {
+//   // Converts the tmp file to the closure name.
+//   // /tmp/tmp-7879f1gAjlmWO7Cf.ts
+//   // module$contents$_tmp$tmp_119185rPdGriCsIMF_TemplateInterface
+//   const formattedTmpFile =
+//     "module$contents$_" +
+//     tmpFile
+//       .slice(1)
+//       .replace(/\-/g, "_")
+//       .replace(/\//g, "$") // remove the extension
+//       .slice(0, -3) +
+//     "_TemplateInterface";
 
-  while (errorMessage.indexOf(formattedTmpFile) !== -1) {
-    errorMessage = errorMessage.replace(formattedTmpFile, originalFile);
-  }
+//   while (errorMessage.indexOf(formattedTmpFile) !== -1) {
+//     errorMessage = errorMessage.replace(formattedTmpFile, originalFile);
+//   }
 
-  return errorMessage;
-}
+//   return errorMessage;
+// }
 
 async function generateClosureInterfaceFromTemplate(
   generatedInterface: string
