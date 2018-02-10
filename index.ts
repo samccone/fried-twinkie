@@ -40,8 +40,9 @@ function getFormattedErrorString(
   if (errorMessage.file === "view-source.js") {
     source = sourceFileContents.split("\n");
   } else {
-    const matchingAdditonalSource = (additionalSources || [])
-      .find(v => v.path === errorMessage.file);
+    const matchingAdditonalSource = (additionalSources || []).find(
+      v => v.path === errorMessage.file
+    );
 
     if (matchingAdditonalSource) {
       source = matchingAdditonalSource.src.split("\n");

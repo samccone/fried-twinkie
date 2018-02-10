@@ -9,11 +9,15 @@
     "typescript": "^2.4.1"
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test": "ts-node test.ts",
+    "lint": "prettier -l *.ts"
   },
   "devDependencies": {
     "@types/chalk": "^0.4.31",
-    "ts-node": "^3.2.0"
+    "prettier": "^1.10.2",
+    "ts-node": "^3.2.0",
+    "typescript": "^2.4.1"
   },
   "name": "fried-twinkie",
   "description": "",
@@ -26,10 +30,7 @@
     "type": "git",
     "url": "git+https://github.com/samccone/fried-twinkie.git"
   },
-  "keywords": [
-    "polymer",
-    "template"
-  ],
+  "keywords": ["polymer", "template"],
   "author": "Sam Saccone",
   "license": "Apache-2.0",
   "bugs": {

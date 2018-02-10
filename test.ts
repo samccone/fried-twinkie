@@ -1,19 +1,20 @@
 import { checkTemplate } from "./";
 
-checkTemplate(
-  "test/polygerrit/gr-change-list-view.html",
-  "test/polygerrit/gr-change-list-view.js",
-  "foo.bar.gr-change-list-view",
-  [
-    {
-      path: "custom-externs.js",
-      src: "/** @externs */ var page; var Gerrit;"
-    }
-  ]
-)
-  .then(() => {
-    console.log("test pass!");
-  })
-  .catch(e => {
-    console.log("ERRORS", e);
-  });
+try {
+  (async () => {
+    await checkTemplate(
+      "test/elms/foo-elm.html",
+      "test/elms/foo-elm.js",
+      "foo.foo_elm",
+      [
+        {
+          path: "custom-externs.js",
+          src: "/** @externs */ var page; var Gerrit;"
+        }
+      ]
+    );
+  })();
+} catch (e) {
+  console.log(`Test failed ${e}`);
+  process.exit(1);
+}
