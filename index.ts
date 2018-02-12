@@ -32,7 +32,7 @@ function getFormattedErrorString(
 
   let source: string[] = [];
 
-  if (errorMessage.file.startsWith("view-source")) {
+  if (errorMessage.file && errorMessage.file.startsWith("view-source")) {
     for (const s of sourceFiles) {
       if (errorMessage.file === `view-source${s.idx}.js`) {
         source = s.sourceFileContents.split("\n");
@@ -234,10 +234,10 @@ export async function checkTemplate(
       v.htmlClosureInterface.moduleName
     }') // ${v.htmlSrcPath}
   const View${idx} = goog.require('${v.jsModule}');
-  
+
   /** @type {!View${idx}} */
   const view${idx} = new View${idx}();
-  
+
   var /** !templateInterface${idx}.${
       v.generatedInterfaceName
     } */ t${idx} = view${idx};
