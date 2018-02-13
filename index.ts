@@ -162,11 +162,11 @@ export async function checkTemplate(
     htmlSrcPath: string;
     jsSrcPath: string;
     jsModule: string;
-    additionalSources?: Array<{
-      src: string;
-      path?: string;
-    }>;
-  }>
+  }>,
+  additionalSources: Array<{
+    src: string;
+    path?: string;
+  }> = [],
 ) {
   const polymerExterns = readFileSync(
     require.resolve(
@@ -174,6 +174,8 @@ export async function checkTemplate(
     ),
     "utf-8"
   );
+
+  additionalSources.push({ src: polymerExterns, path: "polymer-1.0.js" });
 
   const toProcess = await Promise.all(
     toCheck.map(async (v, i) => {
@@ -202,16 +204,6 @@ export async function checkTemplate(
   let sourceTest = `
   goog.module('template.check');
   `;
-
-  const additionalSources = toProcess.reduce(
-    (accum: Array<{ src: string; path?: string }>, val) => {
-      if (val.additionalSources) {
-        accum.push(...val.additionalSources);
-      }
-      return accum;
-    },
-    [{ src: polymerExterns, path: "polymer-1.0.js" }]
-  );
 
   const sourcesToLoad = toProcess.reduce(
     (accum: Array<{ src: string; path?: string }>, v, idx) => {
