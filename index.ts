@@ -32,7 +32,7 @@ function getFormattedErrorString(
 
   let source: string[] = [];
 
-  if (errorMessage.file.startsWith("view-source")) {
+  if (errorMessage.file && errorMessage.file.startsWith("view-source")) {
     for (const s of sourceFiles) {
       if (errorMessage.file === `view-source${s.idx}.js`) {
         source = s.sourceFileContents.split("\n");
@@ -162,11 +162,11 @@ export async function checkTemplate(
     htmlSrcPath: string;
     jsSrcPath: string;
     jsModule: string;
-    additionalSources?: Array<{
-      src: string;
-      path?: string;
-    }>;
-  }>
+  }>,
+  additionalSources: Array<{
+    src: string;
+    path?: string;
+  }> = []
 ) {
   const polymerExterns = readFileSync(
     require.resolve(
@@ -174,6 +174,8 @@ export async function checkTemplate(
     ),
     "utf-8"
   );
+
+  additionalSources.push({ src: polymerExterns, path: "polymer-1.0.js" });
 
   const toProcess = await Promise.all(
     toCheck.map(async (v, i) => {
@@ -203,16 +205,6 @@ export async function checkTemplate(
   goog.module('template.check');
   `;
 
-  const additionalSources = toProcess.reduce(
-    (accum: Array<{ src: string; path?: string }>, val) => {
-      if (val.additionalSources) {
-        accum.push(...val.additionalSources);
-      }
-      return accum;
-    },
-    [{ src: polymerExterns, path: "polymer-1.0.js" }]
-  );
-
   const sourcesToLoad = toProcess.reduce(
     (accum: Array<{ src: string; path?: string }>, v, idx) => {
       accum.push(
@@ -234,10 +226,10 @@ export async function checkTemplate(
       v.htmlClosureInterface.moduleName
     }') // ${v.htmlSrcPath}
   const View${idx} = goog.require('${v.jsModule}');
-  
+
   /** @type {!View${idx}} */
   const view${idx} = new View${idx}();
-  
+
   var /** !templateInterface${idx}.${
       v.generatedInterfaceName
     } */ t${idx} = view${idx};
@@ -275,7 +267,7 @@ export async function checkTemplate(
             sourceFileContents: v.viewSource,
             htmlSrcPath: v.htmlSrcPath,
             generatedHtmlInterfacePath: v.htmlClosureInterface.path,
-            additionalSources: v.additionalSources
+            additionalSources
           };
         }),
         errorMsg
