@@ -31,15 +31,14 @@ test("Multiple element working", async () => {
       htmlSrcPath: "test/elms/zap-elm.html",
       jsSrcPath: "test/elms/zap-elm.js",
       jsModule: "foo.zap_elm",
-      additionalSources: [
-        {
-          path: "custom-externs.js",
-          src: `
-          /** @externs */
-          var /** @type {string} */ glob;
-        `
-        }
-      ]
+    }
+  ], [
+    {
+      path: "custom-externs.js",
+      src: `
+      /** @externs */
+      var /** @type {string} */ glob;
+    `
     }
   ]);
 });
