@@ -21,26 +21,29 @@ test("Single element working", async () => {
 });
 
 test("Multiple element working", async () => {
-  await checkTemplate([
-    {
-      htmlSrcPath: "test/elms/foo-elm.html",
-      jsSrcPath: "test/elms/foo-elm.js",
-      jsModule: "foo.foo_elm"
-    },
-    {
-      htmlSrcPath: "test/elms/zap-elm.html",
-      jsSrcPath: "test/elms/zap-elm.js",
-      jsModule: "foo.zap_elm",
-    }
-  ], [
-    {
-      path: "custom-externs.js",
-      src: `
+  await checkTemplate(
+    [
+      {
+        htmlSrcPath: "test/elms/foo-elm.html",
+        jsSrcPath: "test/elms/foo-elm.js",
+        jsModule: "foo.foo_elm"
+      },
+      {
+        htmlSrcPath: "test/elms/zap-elm.html",
+        jsSrcPath: "test/elms/zap-elm.js",
+        jsModule: "foo.zap_elm"
+      }
+    ],
+    [
+      {
+        path: "custom-externs.js",
+        src: `
       /** @externs */
       var /** @type {string} */ glob;
     `
-    }
-  ]);
+      }
+    ]
+  );
 });
 
 (async () => {

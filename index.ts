@@ -166,7 +166,7 @@ export async function checkTemplate(
   additionalSources: Array<{
     src: string;
     path?: string;
-  }> = [],
+  }> = []
 ) {
   const polymerExterns = readFileSync(
     require.resolve(
@@ -267,7 +267,7 @@ export async function checkTemplate(
             sourceFileContents: v.viewSource,
             htmlSrcPath: v.htmlSrcPath,
             generatedHtmlInterfacePath: v.htmlClosureInterface.path,
-            additionalSources,
+            additionalSources
           };
         }),
         errorMsg
