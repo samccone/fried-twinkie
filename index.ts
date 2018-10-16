@@ -166,7 +166,8 @@ export async function checkTemplate(
   additionalSources: Array<{
     src: string;
     path?: string;
-  }> = []
+  }> = [],
+  additionalClosureCompilerFlags?: Object
 ) {
   const polymerExterns = readFileSync(
     require.resolve(
@@ -244,6 +245,7 @@ export async function checkTemplate(
       src: sourceTest
     })
   };
+  Object.assign(closureCompilerFlags, additionalClosureCompilerFlags);
 
   const compiledResults = compile(closureCompilerFlags);
   for (const v of toProcess) {
