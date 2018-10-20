@@ -46,6 +46,22 @@ test("Multiple element working", async () => {
   );
 });
 
+test("ECMASCRIPT_NEXT features working", async () => {
+  await checkTemplate(
+    [
+      {
+        htmlSrcPath: "test/elms/async-elm.html",
+        jsSrcPath: "test/elms/async-elm.js",
+        jsModule: "foo.async_elm"
+      }
+    ],
+    [],
+    {
+      languageIn: "ECMASCRIPT_NEXT"
+    }
+  );
+});
+
 (async () => {
   for (const testCase of testsToRun) {
     await testRun(testCase);
