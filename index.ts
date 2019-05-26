@@ -4,7 +4,7 @@ import { generateInterface } from "twinkie/index";
 
 const compile = require("google-closure-compiler-js").compile;
 const tmp = require("tmp");
-const toClosureJS = require("tsickle/built/src/main").toClosureJS;
+const toClosureJS = require("tsickle/src/main").toClosureJS;
 const MODULE_EXTRACTOR = /^goog\.module\(\'(.*)\'\)/;
 
 function getFormattedErrorString(
